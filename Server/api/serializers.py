@@ -53,9 +53,10 @@ class ModuleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Module
-        fields = ['id', 'name', 'code', 'description', 'lecturer']
+        fields = ['id', 'name', 'code', 'description', 'lecturer', 'created_at']
         extra_kwargs = {
             'lecturer': {'read_only': True},
+            'created_at': {'read_only' : True}
         }
 
 
@@ -68,7 +69,15 @@ class AssignmentSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'module': {'read_only': True},
             'module_id': {'write_only': True},
+            'created_at': {'read_only' : True}
         }
+
+class AssignmentPageSerializer(serializers.ModelSerializer):
+    module = ModuleSerializer()  # Nesting the ModuleSerializer here
+
+    class Meta:
+        model = Assignment
+        fields = ['id', 'title', 'description', 'due_date', 'module']
 
 
 # Serializer for the Submission model
@@ -85,6 +94,12 @@ class ScoreUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
         fields = ['id', 'score']
+
+# New serializer for fetching file list with scores
+class FileListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Submission
+        fields = ['id', 'assignment', 'file', 'file_name', 'uploaded_at', 'score']
 
 
 # Serializer for the Answer model
