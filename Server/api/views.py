@@ -1,3 +1,5 @@
+import json
+import re
 import stat
 from rest_framework.response import Response
 from django.shortcuts import render
@@ -14,6 +16,8 @@ from django.db.models.functions import TruncMonth
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from rest_framework.filters import OrderingFilter, SearchFilter
+from PyPDF2 import PdfReader
+from docx import Document
 
 
 
@@ -243,18 +247,154 @@ class GradeSubmissionView(generics.UpdateAPIView):
         print(f"Received assignment_id: {assignment_id}")
         submissions = Submission.objects.filter(assignment_id=assignment_id)
 
+        # Fetch the marking scheme
+        marking_scheme = self.get_markingScheme(assignment_id)
+        print(marking_scheme)
+        if not marking_scheme:
+            return Response({"error": "Marking scheme not found for this assignment."}, status=404)
+
+        # Grade each submission
         for submission in submissions:
-            submission.score = self.generate_score(submission)  # Your grading logic
+            submission.score = self.grade_submission(submission, marking_scheme)
             submission.save()
 
         # Return only scores
         scores = [{"id": submission.id, "score": submission.score} for submission in submissions]
         return Response(scores)
-       
 
-    def generate_score(self, file):
-        # Dummy scoring logic (replace with actual logic)
-        return 80
+    def get_markingScheme(self, assignment_id):
+        """
+        Fetches the marking scheme for the given assignment ID and returns it in JSON format.
+        """
+        try:
+            marking_scheme = MarkingScheme.objects.get(assignment_id=assignment_id)
+            answers = marking_scheme.answers.all()
+            scheme_data = {
+                answer.id: {
+                    "answer_text": answer.answer_text.strip().lower(),
+                    "marks": answer.marks
+                }
+                for answer in answers
+            }
+            return scheme_data
+        except MarkingScheme.DoesNotExist:
+            return None
+
+    def grade_submission(self, submission, marking_scheme):
+        """
+        Grades a single submission by comparing its answers to the marking scheme.
+        """
+        # Fetch answers from the file (simulating file content as a dictionary for this example)
+        try:
+            submission_answers = self.parse_submission_file(submission.file)
+        except Exception as e:
+            print(f"Error reading submission file: {e}")
+            return 0  # Assign zero if the file cannot be parsed
+
+        # Convert marking scheme to a list sorted by key (answer ID)
+        marking_answers = list(marking_scheme.values())
+        
+        total_score = 0
+
+        # Compare each answer from the submission with the marking scheme
+        for question_no, student_answer in submission_answers.items():
+            # Ensure the question number exists within the marking scheme's bounds
+            if question_no <= len(marking_answers):
+                correct_answer = marking_answers[question_no - 1]["answer_text"]  # Match by index
+                marks = marking_answers[question_no - 1]["marks"]
+
+                # Normalize answers for comparison (strip and case-insensitive)
+                if student_answer.strip().lower() == correct_answer:
+                    total_score += marks
+
+        return total_score
+
+    def parse_submission_file(self, file):
+        """
+        Parses the submission file and returns a dictionary of answers.
+        Supported formats:
+        - Text files
+        - PDF files
+        - DOCX files
+        File formats handled based on file extension.
+        """
+        answers = {}
+        file_name = file.name.lower()
+
+        if file_name.endswith('.txt'):
+            answers = self.parse_txt_file(file)
+        elif file_name.endswith('.pdf'):
+            answers = self.parse_pdf_file(file)
+        elif file_name.endswith('.docx'):
+            answers = self.parse_docx_file(file)
+        else:
+            print(f"Unsupported file format: {file_name}")
+        
+        print(answers)
+        return answers
+
+    def parse_txt_file(self, file):
+        """
+        Parses text files and extracts answers.
+        """
+        file.open("r")
+        lines = file.readlines()
+        file.close()
+
+        answers = {}
+        pattern = r"^\s*(\d+)\s*[).:\-]?\s+(.*)$"  # Regex for various formats
+
+        for line in lines:
+            line = line.strip()
+            match = re.match(pattern, line)
+            if match:
+                question_no = int(match.group(1))
+                answer_text = match.group(2).strip()
+                answers[question_no] = answer_text
+            else:
+                print(f"Invalid line format: {line}")
+        return answers
+
+    def parse_pdf_file(self, file):
+        """
+        Parses PDF files and extracts answers.
+        """
+        file.open("rb")  # Open PDF in binary mode
+        reader = PdfReader(file)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text()
+        file.close()
+        return self.extract_answers_from_text(text)
+
+    def parse_docx_file(self, file):
+        """
+        Parses DOCX files and extracts answers.
+        """
+        file.open("rb")  # Open DOCX in binary mode
+        document = Document(file)
+        text = "\n".join([para.text for para in document.paragraphs])
+        file.close()
+        return self.extract_answers_from_text(text)
+
+    def extract_answers_from_text(self, text):
+        """
+        Extracts answers from a block of text using regex.
+        """
+        answers = {}
+        lines = text.split("\n")
+        pattern = r"^\s*(\d+)\s*[).:\-]?\s+(.*)$"  # Regex for various formats
+
+        for line in lines:
+            line = line.strip()
+            match = re.match(pattern, line)
+            if match:
+                question_no = int(match.group(1))
+                answer_text = match.group(2).strip()
+                answers[question_no] = answer_text
+            else:
+                print(f"Invalid line format: {line}")
+        return answers
     
 class FileListView(generics.ListAPIView):
     """
