@@ -48,7 +48,7 @@ def check_meaning_with_ollama(student_answer, correct_answer, question_text=None
     
     try:
         response = ollama.chat(
-            model="llama3:instruct", 
+            model="qwen2.5:1.5b",  # "llama3:instruct"
             # host=OLLAMA_HOST,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -328,11 +328,12 @@ def is_answer_correct(student_answer, correct_answer, grading_type, case_sensiti
                 # Calculate partial score for ordered lists using longest common subsequence
                 lcs_length = longest_common_subsequence(student_list, correct_list)
                 score = (lcs_length / len(correct_list)) * 100
-                
+
                 result["is_correct"] = score >= 100.0
                 result["score_percentage"] = score
                 result["explanation"] = f"Partial match with {score:.1f}% correctness (order matters)"
-                return result["is_correct"]  # For backward compatibility
+                # Return the actual score percentage (0-1 scale) for partial matching, not just boolean
+                return score / 100.0  # Return as 0-1 scale for partial credit
             else:
                 result["explanation"] = "Lists don't match (order matters)"
                 return False  # For backward compatibility
@@ -351,14 +352,15 @@ def is_answer_correct(student_answer, correct_answer, grading_type, case_sensiti
                 correct_items = student_set.intersection(correct_set)
                 incorrect_items = student_set - correct_set
                 missing_items = correct_set - student_set
-                
+
                 score = (len(correct_items) / len(correct_set)) * 100
-                
+
                 result["is_correct"] = score >= 100.0
                 result["score_percentage"] = score
                 result["explanation"] = f"Partial match: {len(correct_items)}/{len(correct_set)} items correct"
-                
-                return result["is_correct"]  # For backward compatibility
+
+                # Return the actual score percentage (0-1 scale) for partial matching, not just boolean
+                return score / 100.0  # Return as 0-1 scale for partial credit
             else:
                 result["explanation"] = "Lists don't match (order doesn't matter)"
                 return False  # For backward compatibility
@@ -368,20 +370,45 @@ def is_answer_correct(student_answer, correct_answer, grading_type, case_sensiti
         try:
             # Clean and convert to float for consistent numerical comparison
             # Handle commas, spaces, and other formatting issues
-            student_numeric_str = student_ans_str.replace(',', '').replace(' ', '')
-            correct_numeric_str = correct_ans_str.replace(',', '').replace(' ', '')
-            
+            student_numeric_str = student_ans_str.replace(',', '').replace(' ', '').strip()
+            correct_numeric_str = correct_ans_str.replace(',', '').replace(' ', '').strip()
+
+            # First check if they're exactly equal as strings (fastest and most accurate)
+            if student_numeric_str == correct_numeric_str:
+                result["is_correct"] = True
+                result["score_percentage"] = 100.0
+                result["explanation"] = f"Exact match: {student_numeric_str}"
+                return True
+
             # Convert to float for numerical comparison
             student_value = float(student_numeric_str)
             correct_value = float(correct_numeric_str)
             
             # For range-based checking
             if range_sensitive and answer_range:
-                # Check if value is within the specified range
-                min_val = float(answer_range.get("min", 0))
-                max_val = float(answer_range.get("max", 0))
                 tolerance_percent = float(answer_range.get("tolerance_percent", 0))
-                
+                min_val = answer_range.get("min")
+                max_val = answer_range.get("max")
+
+                # Case 1: Only tolerance specified (no explicit range) - use correct_value as reference
+                if tolerance_percent > 0 and min_val is None and max_val is None:
+                    tolerance_amount = correct_value * (tolerance_percent / 100)
+                    lower_bound = correct_value - tolerance_amount
+                    upper_bound = correct_value + tolerance_amount
+
+                    if lower_bound <= student_value <= upper_bound:
+                        result["is_correct"] = True
+                        result["score_percentage"] = 100.0
+                        result["explanation"] = f"Value {student_value} is within {tolerance_percent}% tolerance of {correct_value}"
+                        return True
+                    else:
+                        result["explanation"] = f"Value {student_value} is outside {tolerance_percent}% tolerance of {correct_value}"
+                        return False
+
+                # Case 2: Range specified (with or without tolerance)
+                min_val = float(min_val) if min_val is not None else float('-inf')
+                max_val = float(max_val) if max_val is not None else float('inf')
+
                 # When range is specified, check if the value is within the range
                 if min_val <= student_value <= max_val:
                     result["is_correct"] = True
@@ -394,7 +421,7 @@ def is_answer_correct(student_answer, correct_answer, grading_type, case_sensiti
                         # Calculate tolerance amount based on closest bound
                         closest_bound = min_val if abs(student_value - min_val) < abs(student_value - max_val) else max_val
                         tolerance_amount = closest_bound * (tolerance_percent / 100)
-                        
+
                         # Check if within tolerance
                         if student_value < min_val and student_value >= (min_val - tolerance_amount):
                             result["is_correct"] = True
@@ -406,13 +433,14 @@ def is_answer_correct(student_answer, correct_answer, grading_type, case_sensiti
                             result["score_percentage"] = 100.0
                             result["explanation"] = f"Value {student_value} is within tolerance of maximum {max_val}"
                             return True  # For backward compatibility
-                    
+
                     result["explanation"] = f"Value {student_value} is outside acceptable range [{min_val}, {max_val}]"
                     return False  # For backward compatibility
             else:
-                # For exact numerical matching with small tolerance for floating point precision
-                epsilon = 0.0001  # Small epsilon for floating point comparison
-                
+                # For exact numerical matching with tolerance for floating point precision
+                # Use relative epsilon for large numbers, absolute epsilon for small numbers
+                epsilon = max(0.0001, abs(correct_value) * 1e-9)  # Relative epsilon for floating point precision
+
                 if abs(student_value - correct_value) <= epsilon:
                     result["is_correct"] = True
                     result["score_percentage"] = 100.0
@@ -420,7 +448,8 @@ def is_answer_correct(student_answer, correct_answer, grading_type, case_sensiti
                     return True  # For backward compatibility
                 else:
                     # Calculate how close the student's answer is as a percentage
-                    result["explanation"] = f"Numerical mismatch: expected {correct_value}, got {student_value}"
+                    diff = abs(student_value - correct_value)
+                    result["explanation"] = f"Numerical mismatch: expected {correct_value}, got {student_value} (difference: {diff})"
                     return False  # For backward compatibility
         except ValueError:
             result["explanation"] = f"Invalid numerical format: '{student_ans_str}' cannot be converted to a number"
