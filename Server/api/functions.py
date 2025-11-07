@@ -138,14 +138,19 @@ def get_or_create_grading_results(submission, marking_scheme):
                 question_text
             )
             
-            # Handle both boolean and dict return types
+            # Handle dict, float, and boolean return types
             if isinstance(grading_result, dict):
                 is_correct = grading_result["is_correct"]
                 score_percentage = grading_result["score_percentage"] / 100  # Convert to 0-1 scale
                 explanation = grading_result["explanation"]
+            elif isinstance(grading_result, float):
+                # Float return type for partial matching (0.0 to 1.0 scale)
+                is_correct = grading_result >= 1.0
+                score_percentage = grading_result  # Already in 0-1 scale
+                explanation = f"Partial credit: {grading_result*100:.1f}%"
             else:
                 # Boolean return type (backward compatibility)
-                is_correct = grading_result
+                is_correct = bool(grading_result)
                 score_percentage = 1.0 if is_correct else 0.0
                 explanation = "Correct" if is_correct else "Incorrect"
             
