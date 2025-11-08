@@ -10,6 +10,8 @@ from .serializers import AssignmentPageSerializer, FileListSerializer, LecturerS
 from .serializers import LecturerProfileSerializer, PasswordChangeSerializer, UserProfileSerializer
 from .serializers import LecturerDetailSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.views import APIView
 from .models import Lecturer, Student, Module, Assignment, Submission  , MarkingScheme, Answer, GradingResult
@@ -764,6 +766,7 @@ class GetLecturerView(generics.ListAPIView):
     serializer_class = LecturerSerializer
     permission_classes = [AllowAny]
  
+@method_decorator(csrf_exempt, name='dispatch')
 class CreateLecturerView(generics.CreateAPIView):
     queryset = Lecturer.objects.all()
     serializer_class = LecturerSerializer
@@ -942,6 +945,7 @@ class ProfilePictureView(APIView):
             return Response({"detail": "Lecturer profile not found."}, status=404)
   
 # View for creating a Student
+@method_decorator(csrf_exempt, name='dispatch')
 class CreateStudentView(generics.CreateAPIView):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer

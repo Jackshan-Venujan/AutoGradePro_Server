@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/VENUJAN/Desktop/AutoGradePro/AutoGradePro_Client/Client/**)",
+      "Bash(dir /s c:UsersVENUJANDesktopAutoGradeProAutoGradePro_ServerServer 2)",
+      "Bash(nul)",
+      "Bash(cat:*)",
+      "Bash(head:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

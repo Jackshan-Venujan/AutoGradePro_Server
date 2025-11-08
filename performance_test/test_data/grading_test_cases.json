@@ -1,0 +1,224 @@
+{
+  "metadata": {
+    "description": "Comprehensive test cases for all grading methods",
+    "version": "1.0",
+    "created": "2025-11-08"
+  },
+  "one_word": {
+    "description": "Test exact word matching with various case and spacing scenarios",
+    "test_cases": [
+      {
+        "id": "OW-001",
+        "question": "What is the capital of France?",
+        "correct_answer": "Paris",
+        "test_inputs": [
+          {"student_answer": "Paris", "expected_correct": true, "reason": "Exact match"},
+          {"student_answer": "paris", "expected_correct": true, "reason": "Case insensitive match"},
+          {"student_answer": "PARIS", "expected_correct": true, "reason": "Uppercase match"},
+          {"student_answer": " Paris ", "expected_correct": true, "reason": "Match with whitespace"},
+          {"student_answer": "London", "expected_correct": false, "reason": "Wrong answer"},
+          {"student_answer": "Par is", "expected_correct": false, "reason": "Incorrect spacing"},
+          {"student_answer": "Parisian", "expected_correct": false, "reason": "Extra characters"}
+        ],
+        "case_sensitive": false
+      },
+      {
+        "id": "OW-002",
+        "question": "What color is the sky on a clear day?",
+        "correct_answer": "Blue",
+        "test_inputs": [
+          {"student_answer": "Blue", "expected_correct": true, "reason": "Exact match"},
+          {"student_answer": "blue", "expected_correct": true, "reason": "Lowercase match"},
+          {"student_answer": "Sky blue", "expected_correct": false, "reason": "Extra words"},
+          {"student_answer": "Green", "expected_correct": false, "reason": "Wrong color"}
+        ],
+        "case_sensitive": false
+      },
+      {
+        "id": "OW-003",
+        "question": "What is the chemical symbol for Gold?",
+        "correct_answer": "Au",
+        "test_inputs": [
+          {"student_answer": "Au", "expected_correct": true, "reason": "Exact match (case sensitive)"},
+          {"student_answer": "au", "expected_correct": false, "reason": "Wrong case"},
+          {"student_answer": "AU", "expected_correct": false, "reason": "Wrong case"},
+          {"student_answer": "Gold", "expected_correct": false, "reason": "Full name instead of symbol"}
+        ],
+        "case_sensitive": true
+      }
+    ]
+  },
+  "short_phrase": {
+    "description": "Test AI-based semantic similarity for short answer questions",
+    "test_cases": [
+      {
+        "id": "SP-001",
+        "question": "What is photosynthesis?",
+        "correct_answer": "Photosynthesis is the process where plants convert sunlight into energy",
+        "test_inputs": [
+          {"student_answer": "Photosynthesis is the process where plants convert sunlight into energy", "expected_score_min": 0.95, "reason": "Exact match"},
+          {"student_answer": "Plants convert sunlight into energy through photosynthesis", "expected_score_min": 0.85, "reason": "Paraphrased correctly"},
+          {"student_answer": "It's when plants use the sun to make food", "expected_score_min": 0.75, "reason": "Simplified but correct"},
+          {"student_answer": "Plants use light to create energy", "expected_score_min": 0.70, "reason": "Simplified version"},
+          {"student_answer": "The process by which green plants produce glucose using light energy", "expected_score_min": 0.75, "reason": "Correct with detail"},
+          {"student_answer": "Plants breathe oxygen", "expected_score_min": 0.0, "expected_score_max": 0.3, "reason": "Incorrect concept"}
+        ],
+        "semantic_threshold": 0.7
+      },
+      {
+        "id": "SP-002",
+        "question": "Define artificial intelligence",
+        "correct_answer": "Artificial intelligence is the simulation of human intelligence by machines",
+        "test_inputs": [
+          {"student_answer": "AI is when machines simulate human thinking", "expected_score_min": 0.80, "reason": "Correct paraphrase"},
+          {"student_answer": "Machines that think like humans", "expected_score_min": 0.70, "reason": "Simplified correct answer"},
+          {"student_answer": "Computer systems that can perform tasks requiring human intelligence", "expected_score_min": 0.75, "reason": "Correct with detail"},
+          {"student_answer": "Robots that are smart", "expected_score_min": 0.4, "expected_score_max": 0.6, "reason": "Oversimplified"},
+          {"student_answer": "The use of computers in everyday life", "expected_score_min": 0.0, "expected_score_max": 0.3, "reason": "Wrong concept"}
+        ],
+        "semantic_threshold": 0.7
+      },
+      {
+        "id": "SP-003",
+        "question": "What is gravity?",
+        "correct_answer": "Gravity is the force that attracts objects toward each other",
+        "test_inputs": [
+          {"student_answer": "The force that pulls objects together", "expected_score_min": 0.80, "reason": "Correct simplified answer"},
+          {"student_answer": "A force of attraction between masses", "expected_score_min": 0.75, "reason": "Correct technical answer"},
+          {"student_answer": "What makes things fall down", "expected_score_min": 0.60, "expected_score_max": 0.75, "reason": "Oversimplified but somewhat correct"},
+          {"student_answer": "The speed at which objects fall", "expected_score_min": 0.0, "expected_score_max": 0.4, "reason": "Confusing gravity with acceleration"}
+        ],
+        "semantic_threshold": 0.7
+      }
+    ]
+  },
+  "list": {
+    "description": "Test list matching with order sensitivity and partial credit options. Order-sensitive uses Longest Common Subsequence (LCS) algorithm - finds longest subsequence maintaining order, not simple item count. Order-insensitive uses set intersection.",
+    "test_cases": [
+      {
+        "id": "L-001",
+        "question": "Name the three primary colors",
+        "correct_answer": ["Red", "Blue", "Yellow"],
+        "test_inputs": [
+          {"student_answer": ["Red", "Blue", "Yellow"], "expected_correct": true, "expected_score": 100, "reason": "Perfect match"},
+          {"student_answer": ["red", "blue", "yellow"], "expected_correct": true, "expected_score": 100, "reason": "Case insensitive match"},
+          {"student_answer": ["Blue", "Red", "Yellow"], "expected_correct": true, "expected_score": 100, "reason": "Different order (order not sensitive)"},
+          {"student_answer": ["Red", "Blue"], "expected_correct": false, "expected_score": 67, "reason": "Missing one item"},
+          {"student_answer": ["Red", "Green", "Blue"], "expected_correct": false, "expected_score": 67, "reason": "One wrong item"},
+          {"student_answer": ["Red", "Blue", "Yellow", "Green"], "expected_correct": false, "expected_score": 75, "reason": "Extra item"}
+        ],
+        "order_sensitive": false,
+        "partial_matching": true,
+        "case_sensitive": false
+      },
+      {
+        "id": "L-002",
+        "question": "List the four seasons in order",
+        "correct_answer": ["Spring", "Summer", "Fall", "Winter"],
+        "test_inputs": [
+          {"student_answer": ["Spring", "Summer", "Fall", "Winter"], "expected_correct": true, "expected_score": 100, "reason": "Perfect match in order"},
+          {"student_answer": ["Summer", "Fall", "Winter", "Spring"], "expected_correct": false, "expected_score": 75, "reason": "Wrong order - LCS=3/4 (Summer,Fall,Winter subsequence)"},
+          {"student_answer": ["Spring", "Summer", "Autumn", "Winter"], "expected_correct": false, "expected_score": 75, "reason": "Synonym 'Autumn' - LCS=3/4 (Spring,Summer,Winter)"},
+          {"student_answer": ["Spring", "Summer", "Fall"], "expected_correct": false, "expected_score": 75, "reason": "Missing last item - LCS=3/4"}
+        ],
+        "order_sensitive": true,
+        "partial_matching": true,
+        "case_sensitive": false
+      },
+      {
+        "id": "L-003",
+        "question": "Name five continents",
+        "correct_answer": ["Africa", "Asia", "Europe", "North America", "South America"],
+        "test_inputs": [
+          {"student_answer": ["Africa", "Asia", "Europe", "North America", "South America"], "expected_correct": true, "expected_score": 100, "reason": "All correct"},
+          {"student_answer": ["Asia", "Africa", "Europe", "South America", "North America"], "expected_correct": true, "expected_score": 100, "reason": "Different order (order not sensitive)"},
+          {"student_answer": ["Africa", "Asia", "Europe"], "expected_correct": false, "expected_score": 60, "reason": "Only 3 of 5"},
+          {"student_answer": ["Africa", "Asia", "Antarctica", "North America", "South America"], "expected_correct": false, "expected_score": 80, "reason": "One wrong item"}
+        ],
+        "order_sensitive": false,
+        "partial_matching": true,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "numerical": {
+    "description": "Test numerical answer matching with exact values, tolerances, and ranges",
+    "test_cases": [
+      {
+        "id": "N-001",
+        "question": "What is 2 + 2?",
+        "correct_answer": 4,
+        "test_inputs": [
+          {"student_answer": 4, "expected_correct": true, "reason": "Exact match"},
+          {"student_answer": 4.0, "expected_correct": true, "reason": "Float equivalent"},
+          {"student_answer": "4", "expected_correct": true, "reason": "String representation"},
+          {"student_answer": 3, "expected_correct": false, "reason": "Wrong answer"},
+          {"student_answer": 5, "expected_correct": false, "reason": "Wrong answer"}
+        ],
+        "range_sensitive": false,
+        "tolerance_percent": 0
+      },
+      {
+        "id": "N-002",
+        "question": "What is the value of Pi to 2 decimal places?",
+        "correct_answer": 3.14,
+        "test_inputs": [
+          {"student_answer": 3.14, "expected_correct": true, "reason": "Exact match"},
+          {"student_answer": "3.14", "expected_correct": true, "reason": "String match"},
+          {"student_answer": 3.15, "expected_correct": true, "reason": "Within 1% tolerance"},
+          {"student_answer": 3.13, "expected_correct": true, "reason": "Within 1% tolerance"},
+          {"student_answer": 3.2, "expected_correct": false, "reason": "Outside tolerance"},
+          {"student_answer": 3.0, "expected_correct": false, "reason": "Too far off"}
+        ],
+        "range_sensitive": true,
+        "tolerance_percent": 1
+      },
+      {
+        "id": "N-003",
+        "question": "What is the boiling point of water in Celsius (acceptable range)?",
+        "correct_answer": 100,
+        "test_inputs": [
+          {"student_answer": 100, "expected_correct": true, "reason": "Exact answer"},
+          {"student_answer": 99, "expected_correct": true, "reason": "Within range"},
+          {"student_answer": 101, "expected_correct": true, "reason": "Within range"},
+          {"student_answer": 98, "expected_correct": false, "reason": "Below minimum"},
+          {"student_answer": 102, "expected_correct": false, "reason": "Above maximum"}
+        ],
+        "range_sensitive": true,
+        "range": {
+          "min": 99,
+          "max": 101,
+          "tolerance_percent": 0
+        }
+      },
+      {
+        "id": "N-004",
+        "question": "Calculate the area of a circle with radius 5 (use π = 3.14)",
+        "correct_answer": 78.5,
+        "test_inputs": [
+          {"student_answer": 78.5, "expected_correct": true, "reason": "Exact match"},
+          {"student_answer": "78.5", "expected_correct": true, "reason": "String match"},
+          {"student_answer": 78.54, "expected_correct": true, "reason": "More precise (within 1%)"},
+          {"student_answer": 79, "expected_correct": true, "reason": "Rounded (within 1%)"},
+          {"student_answer": 75, "expected_correct": false, "reason": "Outside 1% tolerance"}
+        ],
+        "range_sensitive": true,
+        "tolerance_percent": 1
+      },
+      {
+        "id": "N-005",
+        "question": "What is the speed of light in km/s (approximate)?",
+        "correct_answer": 300000,
+        "test_inputs": [
+          {"student_answer": 300000, "expected_correct": true, "reason": "Exact match"},
+          {"student_answer": "300,000", "expected_correct": true, "reason": "With comma formatting"},
+          {"student_answer": 299792, "expected_correct": true, "reason": "Precise value (within 2%)"},
+          {"student_answer": 305000, "expected_correct": true, "reason": "Within 2% tolerance"},
+          {"student_answer": 250000, "expected_correct": false, "reason": "Outside tolerance"}
+        ],
+        "range_sensitive": true,
+        "tolerance_percent": 2
+      }
+    ]
+  }
+}
