@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Grading Performance Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .metric-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .stat-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+        .metadata {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 AutoGradePro Performance Report</h1>
+        <p>Generated: 2025-11-12 00:56:21</p>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-title">📝 One-Word Matching</div>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <div class="stat-label">Samples</div>
+                <div class="stat-value">50</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Mean</div>
+                <div class="stat-value">0.445ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Median</div>
+                <div class="stat-value">0.450ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Std Dev</div>
+                <div class="stat-value">0.035ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Min</div>
+                <div class="stat-value">0.370ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Max</div>
+                <div class="stat-value">0.520ms</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-title">📋 List Comparison</div>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <div class="stat-label">Samples</div>
+                <div class="stat-value">30</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Mean</div>
+                <div class="stat-value">2.35ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Median</div>
+                <div class="stat-value">2.34ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Std Dev</div>
+                <div class="stat-value">0.124ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Min</div>
+                <div class="stat-value">2.12ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Max</div>
+                <div class="stat-value">2.56ms</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-title">🔢 Numerical Validation</div>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <div class="stat-label">Samples</div>
+                <div class="stat-value">25</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Mean</div>
+                <div class="stat-value">0.658ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Median</div>
+                <div class="stat-value">0.670ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Std Dev</div>
+                <div class="stat-value">0.048ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Min</div>
+                <div class="stat-value">0.570ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Max</div>
+                <div class="stat-value">0.730ms</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-title">🤖 AI Semantic Analysis</div>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <div class="stat-label">Samples</div>
+                <div class="stat-value">15</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Mean</div>
+                <div class="stat-value">2.36s (2359ms)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Median</div>
+                <div class="stat-value">2.37s (2368ms)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Std Dev</div>
+                <div class="stat-value">135.10ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Min</div>
+                <div class="stat-value">2.16s (2156ms)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Max</div>
+                <div class="stat-value">2.57s (2568ms)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="metadata">
+        <strong>Metadata:</strong><br>
+        Collected at: 11/12/2025, 11:09:00 AM<br>
+        Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36
+    </div>
+</body>
+</html>
